@@ -6,7 +6,7 @@ using Photon.Realtime;
 using TMPro;
 using UnityEngine.UI;
 
-public class PhotonManager : MonoBehaviourPunCallbacks
+public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks 
 {
     
     #region Panels , InputFields and Buttons
@@ -64,6 +64,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
             IsVisible = true
         };
         PhotonNetwork.CreateRoom(roomName, roomOptions);
+       
     }
     public void OnClickLeaveBtn()
     {
@@ -72,7 +73,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public void OnClickJoinRoomBtn()
     {
-        
+        if (!PhotonNetwork.InLobby)
+        {
+            PhotonNetwork.JoinLobby();
+        }
         roomListPanel.SetActive(true);
         lobbyPanel.SetActive(false);
         Debug.Log("Join Room Btn Clicked!!");
@@ -85,6 +89,25 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         lobbyPanel.SetActive(true);
         Debug.Log("Back To Lobby Btn Clicked!!");
     }
+
+
+    private void RoomJoinFromList(string roomName)
+    {
+        if (PhotonNetwork.InLobby)
+        {
+            PhotonNetwork.LeaveLobby();
+        }
+        PhotonNetwork.JoinRoom(roomName);
+    }
+   /* private void ClearRoomList()
+    {
+        Debug.Log("Room list clear");
+        foreach (var roomObject in roomListGameObjects.Values)
+        {
+            Destroy(roomObject);
+        }
+        roomListGameObjects.Clear();
+    }*/
 
 
 
@@ -120,6 +143,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     public override void OnCreatedRoom()
     {
         Debug.Log(PhotonNetwork.CurrentRoom.Name + " room Created");
+       
     }
 
     public override void OnJoinedRoom()
@@ -147,18 +171,40 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         
     }
 
-    /*public override void OnJoinRandomFailed(short returnCode, string message)
+    public override void OnJoinedLobby()
     {
-        Debug.Log("PUN Basics Tutorial/Launcher:OnJoinRandomFailed() was called by PUN. No random room available, so we create one.\nCalling: PhotonNetwork.CreateRoom");
-
-        // #Critical: we failed to join a random room, maybe none exists or they are all full. No worries, we create a new room.
-        // PhotonNetwork.CreateRoom(, new RoomOptions(MaxPlayers = 2));
+        Debug.Log(" OnJoinedLobby");
     }
-*/
-    /* public override void OnJoinedRoom()
-     {
-         Debug.Log("Room Joined );
-             roomPanel.SetActive(true);
-         lobbyPanel.SetActive(false);
-     }*/
+    public override void OnLeftLobby()
+    {
+        Debug.Log(" OnLeftLobby");
+    }
+    public override void OnJoinRandomFailed(short returnCode, string message)
+    {
+        base.OnJoinRandomFailed(returnCode, message);
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        base.OnJoinRoomFailed(returnCode, message);
+    }
+
+    public override void OnLeftRoom()
+    {
+        Debug.Log("  OnLeftRoom");
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        base.OnPlayerEnteredRoom(newPlayer);
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        base.OnPlayerLeftRoom(otherPlayer);
+    }
+
+    
+
+
 }
