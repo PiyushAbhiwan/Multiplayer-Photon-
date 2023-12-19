@@ -14,10 +14,14 @@ public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks
     public Button connectBtn, createRoomBtn, JoinRoomBtn, joinBtn, startBtn, leaveBtn, backToLobbyBtn;
     public TMP_Text clientstatetxt, playerName1, playerName2;
     public TMP_InputField playerName;
-    public PhotonManager instance;
+    private static PhotonManager instance;
+
+    public GameObject roomListPrefab;
+    public GameObject roomListParent;
     #endregion
 
     private Dictionary<string, RoomInfo> roomListData;
+    private Dictionary<string, GameObject> roomListObjects;
 
 
     public void Start()
@@ -30,6 +34,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks
         backToLobbyBtn.onClick.AddListener(OnClickBackToLobbyBtn);
 
         roomListData = new Dictionary<string, RoomInfo>();
+        roomListObjects = new Dictionary<string, GameObject>();
     }
     public void Update()
     {
@@ -99,15 +104,15 @@ public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks
         }
         PhotonNetwork.JoinRoom(roomName);
     }
-   /* private void ClearRoomList()
+    public void ClearRoomList()
     {
         Debug.Log("Room list clear");
-        foreach (var roomObject in roomListGameObjects.Values)
+        foreach (var roomObject in roomListObjects.Values)
         {
             Destroy(roomObject);
         }
-        roomListGameObjects.Clear();
-    }*/
+        roomListObjects.Clear();
+    }
 
 
 
@@ -163,12 +168,43 @@ public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
+        ClearRoomList();
         foreach (var rooms in roomList)
         {
             Debug.Log(" Room Name "+rooms.Name);
-            roomListData.Add(rooms.Name, rooms);
+            if (!rooms.IsOpen || !rooms.IsVisible || rooms.RemovedFromList)
+            {
+                if (roomListData.ContainsKey(rooms.Name))
+                {
+                    roomListData.Remove(rooms.Name);
+                }
+            }
+            else
+            {
+                if (roomListData.ContainsKey(rooms.Name))
+                {
+                    roomListData[rooms.Name] = rooms;
+                }
+                else
+                {
+                    roomListData.Add(rooms.Name, rooms);
+                }
+            }
         }
-        
+
+
+        foreach (RoomInfo roomItem in roomListData.Values)
+        {
+            GameObject roomListItemObject = Instantiate(roomListPrefab);
+            roomListItemObject.transform.SetParent(roomListParent.transform);
+            
+            // room name  , player, button
+            roomListItemObject.transform.GetChild(0).gameObject.GetComponent<TMP_Text>().text = roomItem.Name;
+            roomListItemObject.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().text = roomItem.PlayerCount + "/ " + roomItem.MaxPlayers;
+            roomListItemObject.transform.GetChild(2).gameObject.GetComponent<Button>().onClick.AddListener(() => RoomJoinFromList(roomItem.Name));
+            roomListItemObject.transform.localScale = Vector3.one;
+            roomListObjects.Add(roomItem.Name,roomListItemObject);
+        }
     }
 
     public override void OnJoinedLobby()
