@@ -35,8 +35,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks
         JoinRoomBtn.onClick.AddListener(OnClickJoinRoomBtn);
         backToLobbyBtn.onClick.AddListener(OnClickBackToLobbyBtn);
         startBtn.onClick.AddListener(OnStartBtnClick);
+        PhotonNetwork.AutomaticallySyncScene = true;
 
-        roomListData = new Dictionary<string, RoomInfo>();
+
+       roomListData = new Dictionary<string, RoomInfo>();
         roomListObjects = new Dictionary<string, GameObject>();
     }
     public void Update()
@@ -146,7 +148,11 @@ public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks
 
     public void OnStartBtnClick()
     {
-        string sceneName = "GameScene";
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+        {
+            PhotonNetwork.LoadLevel("GameScene");
+        }
+       /* string sceneName = "GameScene";
         object[] data =
         {
              PhotonNetwork.LocalPlayer,
@@ -154,7 +160,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks
         };
         RaiseEvt(scene,data,ReceiverGroup.Others);
         SceneManager.LoadScene(sceneName);
-        Debug.Log("RaiseEvt"+ scene);
+        Debug.Log("RaiseEvt"+ scene);*/
     }
 
 
@@ -327,14 +333,14 @@ public class PhotonManager : MonoBehaviourPunCallbacks , ILobbyCallbacks
             playerName1.text = player1Name;
             playerName2.text = player2Name;
         }
-        if (photonEvent.Code == scene)
+        /*if (photonEvent.Code == scene)
         {
             Debug.Log("Event Recieved for scene" + scene);
             var receivedData = (object[])photonEvent.CustomData;
             var player = (Player)receivedData[0];
             SceneManager.LoadScene("GameScene");
           
-        }
+        }*/
     }
     #endregion
 
